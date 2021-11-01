@@ -1,0 +1,49 @@
+#!/bin/bash -xe
+
+# System Update
+yum -y update
+yum -y upgrade
+
+# STEP 1 - Configure Authentication Variables which are used below
+
+DBName=${DBName}                    # Parameter Name
+DBUser=${DBUser}                    # Parameter Name
+DBPassword=${DBPassword}            # Parameter Name
+DBRootPassword=${DBRootPassword}    # Parameter Name
+
+
+# STEP 2 - Install system software - including Web and DB
+sudo yum install -y mariadb-server wget cowsay
+
+# STEP 3 - DB Servers Online - and set to startup
+sudo systemctl enable mariadb
+sudo systemctl start mariadb
+
+
+# STEP 4 - Set Mariadb Root Password
+mysqladmin -u root password $DBRootPassword
+
+# STEP 5 Create Wordpress DB
+
+echo "CREATE DATABASE $DBName;" >> /tmp/db.setup
+echo "CREATE USER '$DBUser'@'localhost' IDENTIFIED BY '$DBPassword';" >> /tmp/db.setup
+echo "GRANT ALL ON $DBName.* TO '$DBUser'@'localhost';" >> /tmp/db.setup
+echo "FLUSH PRIVILEGES;" >> /tmp/db.setup
+mysql -u root --password=$DBRootPassword < /tmp/db.setup
+sudo rm /tmp/db.setup
+
+
+# STEP 6 COWSAY
+
+sudo tee -a /etc/update-motd.d/40-cow > /dev/null <<EOT 
+cowsay 'Amazon Linux 2 AMI - Good day Mr Nabeel'
+EOT
+
+sudo chmod 755 /etc/update-motd.d/40-cow
+sudo rm /etc/update-motd.d/30-banner
+sudo update-motd
+
+
+
+
+

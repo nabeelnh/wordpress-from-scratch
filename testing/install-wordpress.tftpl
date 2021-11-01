@@ -1,0 +1,11 @@
+#!/bin/bash
+
+
+# Extract Private IP address from Private AWS DNS name
+echo "${private_dns}"
+private_ip=$(echo "${private_dns}" | tr "." "\n" | awk 'NR==1{print $1}' | tr "-" "." | cut -d. -f2-)
+echo "$private_ip"
+
+
+
+
