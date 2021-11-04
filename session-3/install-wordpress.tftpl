@@ -1,24 +1,17 @@
-#!/bin/bash
-
-# System Update
-yum -y update
-yum -y upgrade
-
-# STEP 1 - Configure Authentication Variables which are used below
-
-DBName=${DBName}                    # Parameter Name
-DBUser=${DBUser}                    # Parameter Name
-DBPassword=${DBPassword}            # Parameter Name
-DBRootPassword=${DBRootPassword}    # Parameter Name
+#!/bin/bash -xe
 
 
-# STEP 2 - Install system software - including Web and DB
+# System Updates
+sudo yum -y update
+sudo yum -y upgrade
 
+
+# Install system software - including Web and DB
 sudo yum install -y mariadb-server httpd wget cowsay
 sudo amazon-linux-extras install -y lamp-mariadb10.2-php7.2 php7.2
 
 
-# STEP 3 - Web and DB Servers Online - and set to startup
+# Web and DB Servers Online - and set to startup
 
 sudo systemctl enable httpd
 sudo systemctl enable mariadb
@@ -26,11 +19,12 @@ sudo systemctl start httpd
 sudo systemctl start mariadb
 
 
-# STEP 4 - Set Mariadb Root Password
-mysqladmin -u root password $DBRootPassword
+# Set MARIADB Root Password
+mysqladmin -u root password ${DBRootPassword}
 
 
-# STEP 5 - Install Wordpress
+# Install Wordpress
+
 sudo wget http://wordpress.org/latest.tar.gz -P /var/www/html
 cd /var/www/html
 sudo tar -zxvf latest.tar.gz
@@ -39,34 +33,32 @@ sudo rm -R wordpress
 sudo rm latest.tar.gz
 
 
-# STEP 6 - Configure Wordpress
+# Configure Wordpress
 
 sudo cp ./wp-config-sample.php ./wp-config.php
-sudo sed -i "s/'database_name_here'/'$DBName'/g" wp-config.php
-sudo sed -i "s/'username_here'/'$DBUser'/g" wp-config.php
-sudo sed -i "s/'password_here'/'$DBPassword'/g" wp-config.php 
-sudo sed -i "s/'localhost'/'${Private_DNS}'/g" wp-config.php   
-#sudo chown apache:apache * -R
+sudo sed -i "s/'database_name_here'/'${DBName}'/g" wp-config.php
+sudo sed -i "s/'username_here'/'${DBUser}'/g" wp-config.php
+sudo sed -i "s/'password_here'/'${DBPassword}'/g" wp-config.php
 
-# Step 7 - permissions   
-usermod -a -G apache ec2-user   
-chown -R ec2-user:apache /var/www
-chmod 2775 /var/www
-find /var/www -type d -exec chmod 2775 {} \;
-find /var/www -type f -exec chmod 0664 {} \;
 
-# STEP 8 Create Wordpress DB
+# Permissions   
+sudo usermod -a -G apache ec2-user   
+sudo chown -R ec2-user:apache /var/www
+sudo chmod 2775 /var/www
+sudo find /var/www -type d -exec chmod 2775 {} \;
+sudo find /var/www -type f -exec chmod 0664 {} \;
 
-echo "CREATE DATABASE $DBName;" >> /tmp/db.setup
-echo "CREATE USER '$DBUser'@'localhost' IDENTIFIED BY '$DBPassword';" >> /tmp/db.setup
-echo "GRANT ALL ON $DBName.* TO '$DBUser'@'localhost';" >> /tmp/db.setup
+
+# Create Wordpress DB
+echo "CREATE DATABASE ${DBName};" >> /tmp/db.setup
+echo "CREATE USER '${DBUser}'@'localhost' IDENTIFIED BY '${DBPassword}';" >> /tmp/db.setup
+echo "GRANT ALL ON ${DBName}.* TO '${DBUser}'@'localhost';" >> /tmp/db.setup
 echo "FLUSH PRIVILEGES;" >> /tmp/db.setup
-mysql -u root --password=$DBRootPassword < /tmp/db.setup
+mysql -u root --password=${DBRootPassword} < /tmp/db.setup
 sudo rm /tmp/db.setup
 
 
-# STEP 9 COWSAY
-
+# STEP 8 COWSAY
 sudo tee -a /etc/update-motd.d/40-cow > /dev/null <<EOT 
 cowsay 'Amazon Linux 2 AMI - Good day Mr Nabeel'
 EOT
@@ -75,10 +67,10 @@ sudo chmod 755 /etc/update-motd.d/40-cow
 sudo rm /etc/update-motd.d/30-banner
 sudo update-motd
 
+# Migration
+mysqldump -u root -p${DBPassword} ${DBName} > a4lwordpress.sql
+mysql -h ${PrivateDNS} -u ${DBUser} -p${DBPassword} ${DBName} < a4lwordpress.sql
+sudo sed -i "s/'localhost'/'${PrivateDNS}'/g" wp-config.php
 
-
-# STEP 9 - Browse to http://your_instance_public_ipv4_ip
-
-
-
-
+# Stop DB of this instance
+sudo service mariadb stop

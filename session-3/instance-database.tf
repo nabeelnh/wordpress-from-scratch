@@ -17,7 +17,7 @@ resource "aws_instance" "database" {
       DBName = "username", 
       DBUser = "username",
       DBPassword = "password",
-      DBRootPassword = "password"
+      DBRootPassword = "password",
       })
     destination = "/tmp/install-database.sh"
   }

@@ -18,7 +18,7 @@ resource "aws_instance" "web" {
       DBUser = "username",
       DBPassword = "password",
       DBRootPassword = "password",
-      Private_DNS = self.private_dns
+      PrivateDNS = aws_instance.database.private_dns
       })
     destination = "/tmp/install-wordpress.sh"
   }
