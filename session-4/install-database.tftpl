@@ -1,0 +1,21 @@
+#!/bin/bash -xe    
+
+
+# # Install system software - DB
+sudo yum -y install mariadb-server wget cowsay
+
+
+# DB Servers Online - and set to startup
+sudo systemctl enable mariadb
+sudo systemctl start mariadb
+
+
+# Create Wordpress DB
+
+echo "CREATE DATABASE ${DBName};" >> /tmp/db.setup
+echo "CREATE USER '${DBUser}' IDENTIFIED BY '${DBPassword}';" >> /tmp/db.setup
+echo "GRANT ALL PRIVILEGES ON *.* TO '${DBUser}'@'%';" >> /tmp/db.setup
+echo "FLUSH PRIVILEGES;" >> /tmp/db.setup
+mysqladmin -u root password "${DBRootPassword}"
+mysql -u root --password="${DBRootPassword}" < /tmp/db.setup
+rm /tmp/db.setup
