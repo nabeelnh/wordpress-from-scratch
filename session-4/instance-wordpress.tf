@@ -2,9 +2,11 @@
 resource "aws_instance" "web" {
   ami           = data.aws_ami.ami.id
   instance_type = var.instance_type
-  vpc_security_group_ids =  [aws_security_group.allow_http.id]
+  vpc_security_group_ids =  [aws_security_group.vpc.id]
   key_name  = var.ssh_key
   iam_instance_profile = aws_iam_instance_profile.instance_profile.name
+  subnet_id = aws_subnet.web-subnet1.id
+  # availability_zone = "eu-west-2a"
 
   connection {
     host = self.public_ip
