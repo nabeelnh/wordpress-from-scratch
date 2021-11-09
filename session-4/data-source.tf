@@ -13,6 +13,3 @@ data "aws_ami" "ami" {
 data "http" "myip" {
   url = "http://ipv4.icanhazip.com"
 }
-
-# List avaialable Availability Zones
-data "aws_availability_zones" "available" {}

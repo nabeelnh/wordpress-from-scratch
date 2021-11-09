@@ -2,14 +2,14 @@
 resource "aws_instance" "database" {
   ami           = data.aws_ami.ami.id
   instance_type = var.instance_type
-  vpc_security_group_ids =  [aws_security_group.vpc.id]
+  vpc_security_group_ids =  [aws_security_group.allow_http.id]
   key_name  = var.ssh_key
   iam_instance_profile = aws_iam_instance_profile.instance_profile.name
-  subnet_id = aws_subnet.db-subnet1.id
-  # availability_zone = "eu-west-2a"
+  subnet_id = aws_subnet.web-subnet1.id
+  associate_public_ip_address = true
 
   connection {
-    host = self.private_ip
+    host = self.public_ip
     user    = "ec2-user"
     private_key  = "${file("~/.aws/${var.ssh_key}.pem")}"
   }
@@ -41,6 +41,8 @@ resource "aws_instance" "database" {
 resource "aws_security_group" "allow_database" {
   name        = "Database security group"
   description = "Allow HTTP inbound traffic"
+  vpc_id      = aws_vpc.vpc.id
+  depends_on  = [aws_vpc.vpc]
 
   ingress {
       description      = "HTTP from the public"

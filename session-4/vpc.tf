@@ -9,29 +9,29 @@ resource "aws_vpc" "vpc" {
   }
 }
 
-# VPC wide security group
-resource "aws_security_group" "vpc" {
-  name        = "${var.project}-default-sg"
-  description = "Default security group to allow inbound/outbound from the VPC"
-  vpc_id      = "${aws_vpc.vpc.id}"
-  depends_on  = [aws_vpc.vpc]
-  ingress {
-    from_port = "0"
-    to_port   = "0"
-    protocol  = "-1"
-    self      = true
-  }
+# # VPC wide security group
+# resource "aws_security_group" "vpc" {
+#   name        = "${var.project}-default-sg"
+#   description = "Default security group to allow inbound/outbound from the VPC"
+#   vpc_id      = "${aws_vpc.vpc.id}"
+#   depends_on  = [aws_vpc.vpc]
+#   ingress {
+#     from_port = "0"
+#     to_port   = "0"
+#     protocol  = "-1"
+#     self      = true
+#   }
   
-  egress {
-    from_port = "0"
-    to_port   = "0"
-    protocol  = "-1"
-    self      = "true"
-  }
-  tags = {
-    Environment = "${var.env}"
-  }
-}
+#   egress {
+#     from_port = "0"
+#     to_port   = "0"
+#     protocol  = "-1"
+#     self      = "true"
+#   }
+#   tags = {
+#     Environment = "${var.env}"
+#   }
+# }
 
 # Reserved Subnets - Buffer for expansion
 resource "aws_subnet" "reserved-subnet1" {
